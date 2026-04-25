@@ -1,0 +1,8 @@
+push I 0
+save a
+push I 5
+save a
+load a
+push I 10
+add I
+print 1
