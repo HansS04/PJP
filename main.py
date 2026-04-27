@@ -30,8 +30,44 @@ class MyCompiler(PLCVisitor):
             elif var_type == 'float': self.instructions.append("push F 0.0")
             elif var_type == 'bool': self.instructions.append("push B false")
             elif var_type == 'string': self.instructions.append('push S ""')
+            elif var_type == 'file': self.instructions.append("push S \"\"") # Inicializace prázdným jménem/streamem
+            elif var_type == 'char': self.instructions.append('push S ""')
+            
                 
             self.instructions.append(f"save {var_name}")
+        return None
+    
+    
+    
+    def visitFappendStatement(self, ctx: PLCParser.FappendStatementContext):
+        # 1. Kolik věcí celkem dáváme na zásobník? 
+        # (Proměnná souboru + všechny další výrazy)
+        expressions = ctx.expression()
+        num_params = len(expressions) + 1 # +1 pro tu FILE proměnnou (ID)
+        
+        # 2. Nejdřív musíme dát na zásobník ten soubor (stream)
+        var_name = ctx.ID().getText()
+        self.instructions.append(f"load {var_name}")
+        
+        # 3. Potom tam naházíme všechny hodnoty, co chceme zapsat
+        for expr in expressions:
+            self.visit(expr)
+            
+        # 4. Vygenerujeme instrukci fappend s celkovým počtem prvků
+        self.instructions.append(f"fappend {num_params}")
+        return None
+
+    def visitFopenStatement(self, ctx: PLCParser.FopenStatementContext):
+        # 1. Zjistíme jméno proměnné a jméno souboru (výraz)
+        var_name = ctx.ID().getText()
+        # Vyhodnotíme výraz pro cestu k souboru (např. "test.txt")
+        self.visit(ctx.expression()) 
+        
+        # 2. Vygenerujeme instrukci fopen
+        self.instructions.append("fopen")
+        
+        # 3. Výsledek (otevřený soubor) musíme uložit do proměnné 'a'
+        self.instructions.append(f"save {var_name}")
         return None
 
     # 3. PŘIŘAZENÍ (Např. a = 5)
@@ -70,6 +106,7 @@ class MyCompiler(PLCVisitor):
         self.instructions.append(f"push I {hodnota}")
         return 'int'
 
+    
     # 6. ČTENÍ HODNOTY Z PROMĚNNÉ (Nutné pro výpočet např. a + 5)
     def visitIdExpression(self, ctx: PLCParser.IdExpressionContext):
         var_name = ctx.ID().getText()
@@ -336,9 +373,151 @@ class MyCompiler(PLCVisitor):
             self.instructions.append(f"save {var_name}")
             
         return None
+    def visitEmptyStatement(self, ctx: PLCParser.EmptyStatementContext):
+        return None
+    
+    def visitForStatement(self, ctx: PLCParser.ForStatementContext):
+        # 1. INICIALIZACE (např. i = 0) - to je výraz s indexem 0
+        self.visit(ctx.expression(0))
+        # Protože je to výraz (např. přiřazení), zanechá na zásobníku hodnotu.
+        # My ji tu nechceme, takže ji hned zahodíme.
+        self.instructions.append("pop")
+
+        # 2. PŘÍPRAVA LEPÍKŮ
+        label_start = self.get_new_label()
+        label_end = self.get_new_label()
+
+        # 3. ZNAČKA START (Sem se budeme po každém kole vracet)
+        self.instructions.append(f"label {label_start}")
+
+        # 4. KONTROLA PODMÍNKY (např. i < 10) - to je výraz s indexem 1
+        cond_type = self.visit(ctx.expression(1))
+        if cond_type != 'bool':
+            print("Error: Podmínka v cyklu FOR musí být typu bool!")
+            sys.exit(1)
+
+        # 5. ÚNIKOVÝ VÝCHOD (Pokud podmínka padne, skoč na konec)
+        self.instructions.append(f"fjmp {label_end}")
+
+        # 6. TĚLO CYKLU (Provedení příkazů uvnitř závorek)
+        self.visit(ctx.statement())
+
+        # 7. KROK CYKLU (např. i = i + 1) - to je výraz s indexem 2
+        self.visit(ctx.expression(2))
+        # Opět uklidíme zásobník
+        self.instructions.append("pop")
+
+        # 8. NÁVRAT NA START
+        self.instructions.append(f"jmp {label_start}")
+
+        # 9. ZNAČKA KONCE (Sem vyskočí fjmp)
+        self.instructions.append(f"label {label_end}")
+
+        return None
+
+    # ZÍSKÁNÍ ZNAKU Z TEXTU (např. b[1])
+    def visitCharAtExpression(self, ctx: PLCParser.CharAtExpressionContext):
+        # 1. Zpracujeme to, z čeho chceme znak tahat (levá strana před závorkou)
+        left_type = self.visit(ctx.expression(0))
+        
+        if left_type != 'string':
+            print("Error: Operaci charAt (závorky []) lze použít pouze na typ string!")
+            sys.exit(1)
+
+        # 2. Zpracujeme vnitřek závorek (samotný index)
+        index_type = self.visit(ctx.expression(1))
+        
+        if index_type != 'int':
+            print("Error: Index v hranatých závorkách musí být celé číslo (int)!")
+            sys.exit(1)
+
+        # 3. Jakmile je na zásobníku text i index, vygenerujeme instrukci
+        self.instructions.append("charAt")
+
+        # 4. Výsledkem této operace je jeden znak
+        return 'char'
+    
+    # MOCNINA (**)
+    def visitPowerExpression(self, ctx: PLCParser.PowerExpressionContext):
+        # 1. Zpracujeme levou stranu (základ)
+        left_type = self.visit(ctx.expression(0))
+        
+        # TRIK PRO ITOF
+        right_start_index = len(self.instructions) 
+        
+        # 2. Zpracujeme pravou stranu (exponent)
+        right_type = self.visit(ctx.expression(1))
+
+        # 3. PŘETYPOVÁNÍ (Type Casting)
+        result_type = left_type
+        if left_type == 'int' and right_type == 'float':
+            self.instructions.insert(right_start_index, "itof")
+            result_type = 'float'
+        elif left_type == 'float' and right_type == 'int':
+            self.instructions.append("itof")
+            result_type = 'float'
+
+        # 4. Samotná instrukce
+        type_code = result_type[0].upper() # 'I' pro int, 'F' pro float
+        self.instructions.append(f"pow {type_code}")
+        
+        return result_type
+    
+
+    # TERNÁRNÍ OPERÁTOR (podmínka ? true_vyraz : false_vyraz)
+    def visitTernaryExpression(self, ctx: PLCParser.TernaryExpressionContext):
+        # 1. Zpracování podmínky (musí nechat na stole true/false)
+        cond_type = self.visit(ctx.expression(0))
+        if cond_type != 'bool':
+            print("Error: Podmínka v ternárním operátoru musí být typu bool!")
+            sys.exit(1)
+
+        # Připravíme si lepíky
+        label_false = self.get_new_label()
+        label_end = self.get_new_label()
+
+        # Únikový skok, pokud je podmínka FALSE
+        self.instructions.append(f"fjmp {label_false}")
+
+        # --- TRUE VĚTEV ---
+        true_type = self.visit(ctx.expression(1))
+        
+        # Tady si zapamatujeme, kam případně vložit itof pro TRUE větev.
+        # Musí to být JEŠTĚ PŘED skokem na konec!
+        jmp_index = len(self.instructions)
+        self.instructions.append(f"jmp {label_end}")
+
+        # --- FALSE VĚTEV ---
+        self.instructions.append(f"label {label_false}")
+        false_type = self.visit(ctx.expression(2))
+
+        # --- PŘETYPOVÁNÍ (itof magie) ---
+        result_type = true_type
+        if true_type == 'int' and false_type == 'float':
+            # TRUE větev byla int, FALSE byla float.
+            # Musíme 'itof' vložit přesně před ten únikový skok TRUE větve!
+            self.instructions.insert(jmp_index, "itof")
+            result_type = 'float'
+            
+        elif true_type == 'float' and false_type == 'int':
+            # FALSE větev je int, TRUE byla float.
+            # Jsme na konci FALSE větve, takže 'itof' prostě plácneme nakonec.
+            self.instructions.append("itof")
+            result_type = 'float'
+            
+        elif true_type != false_type:
+            # Pokud mícháme třeba string a int, radši to zařízneme.
+            print(f"Error: Nekompatibilní typy v ternárním operátoru ({true_type} a {false_type})!")
+            sys.exit(1)
+
+        # Sem se skočí na konci TRUE větve
+        self.instructions.append(f"label {label_end}")
+
+        # Ternární operátor VŽDY vrací hodnotu na zásobník (je to výraz)
+        return result_type
 
 def main():
-    input_stream = FileStream("test.plc")
+    input_stream = FileStream("test.plc", encoding='utf-8')
     lexer = PLCLexer(input_stream)
     stream = CommonTokenStream(lexer)
     parser = PLCParser(stream)

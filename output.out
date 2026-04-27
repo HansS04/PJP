@@ -1,61 +1,108 @@
-push I 3
-push I 4
-lt I
+push I 0
+save i
+push I 0
+save j
+push F 0.0
+save f
+push S ""
+save s
+push S ""
+save c
+push B false
+save b
+push S ""
+save out
+push I 10
+save i
+pop
+push F 2.5
+save f
+pop
+load f
+load i
+itof
+add F
+save f
+pop
+push S "Vysledek f = f + i (ma byt 12.5): "
+load f
+print 2
+push S "Ahoj Svete"
+save s
+pop
+load s
+push I 5
+charAt
+save c
+pop
+push S "Pate pismeno v textu 'Ahoj Svete' je: "
+load c
+print 2
+push B false
+not
+save b
+pop
+load i
+push I 5
+gt I
+load b
+push B true
+eq B
+and
 fjmp 1
-push S "condition was true"
+push S "Podminka plati, 'i' je vetsi nez 5 a 'b' je true."
 print 1
 jmp 2
 label 1
-push S "condition was false"
+push S "Chyba: Tohle by se vubec nemelo vypsat."
 print 1
 label 2
-push B true
-fjmp 3
-push S "inside"
+push S "Odpocet pomoci WHILE:"
 print 1
-push S "second"
-print 1
-push S "if"
-print 1
+push I 3
+save j
+pop
 label 3
+load j
 push I 0
-save a
-push I 0
-save b
+gt I
+fjmp 4
+load j
+print 1
+load j
+push I 1
+sub I
+save j
+pop
+jmp 3
 label 4
-load a
-push I 10
-lt I
-fjmp 5
-push S "a="
-load a
-print 2
-load a
-push I 1
-add I
-save a
-pop
-jmp 4
-label 5
+push S "Pocitani pomoci FOR:"
+print 1
 push I 0
-save a
+save j
 pop
-read I
-save b
-label 6
-load a
-load b
+label 5
+load j
+push I 3
 lt I
-fjmp 7
-push S "a="
-load a
-push S ", b="
-load b
-print 4
-load a
+fjmp 6
+push S "Krok FOR cyklu: "
+load j
+print 2
+load j
 push I 1
 add I
-save a
+save j
 pop
-jmp 6
-label 7
+jmp 5
+label 6
+push S "vysledek_testu.txt"
+fopen
+save out
+load out
+push S "Tohle je automaticky vygenerovany test."
+push S " Hodnota f je: "
+load f
+fappend 4
+push S "Zapis do souboru 'vysledek_testu.txt' byl uspesne dokoncen!"
+print 1

@@ -98,6 +98,51 @@ class PLCListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by PLCParser#forStatement.
+    def enterForStatement(self, ctx:PLCParser.ForStatementContext):
+        pass
+
+    # Exit a parse tree produced by PLCParser#forStatement.
+    def exitForStatement(self, ctx:PLCParser.ForStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by PLCParser#fopenStatement.
+    def enterFopenStatement(self, ctx:PLCParser.FopenStatementContext):
+        pass
+
+    # Exit a parse tree produced by PLCParser#fopenStatement.
+    def exitFopenStatement(self, ctx:PLCParser.FopenStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by PLCParser#fappendStatement.
+    def enterFappendStatement(self, ctx:PLCParser.FappendStatementContext):
+        pass
+
+    # Exit a parse tree produced by PLCParser#fappendStatement.
+    def exitFappendStatement(self, ctx:PLCParser.FappendStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by PLCParser#TernaryExpression.
+    def enterTernaryExpression(self, ctx:PLCParser.TernaryExpressionContext):
+        pass
+
+    # Exit a parse tree produced by PLCParser#TernaryExpression.
+    def exitTernaryExpression(self, ctx:PLCParser.TernaryExpressionContext):
+        pass
+
+
+    # Enter a parse tree produced by PLCParser#PowerExpression.
+    def enterPowerExpression(self, ctx:PLCParser.PowerExpressionContext):
+        pass
+
+    # Exit a parse tree produced by PLCParser#PowerExpression.
+    def exitPowerExpression(self, ctx:PLCParser.PowerExpressionContext):
+        pass
+
+
     # Enter a parse tree produced by PLCParser#IntExpression.
     def enterIntExpression(self, ctx:PLCParser.IntExpressionContext):
         pass
@@ -194,6 +239,15 @@ class PLCListener(ParseTreeListener):
 
     # Exit a parse tree produced by PLCParser#AssignmentExpression.
     def exitAssignmentExpression(self, ctx:PLCParser.AssignmentExpressionContext):
+        pass
+
+
+    # Enter a parse tree produced by PLCParser#charAtExpression.
+    def enterCharAtExpression(self, ctx:PLCParser.CharAtExpressionContext):
+        pass
+
+    # Exit a parse tree produced by PLCParser#charAtExpression.
+    def exitCharAtExpression(self, ctx:PLCParser.CharAtExpressionContext):
         pass
 
 

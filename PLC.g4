@@ -21,7 +21,10 @@ ELSE: 'else';
 WHILE: 'while';
 READ: 'read';
 WRITE: 'write';
-
+FILE: 'file';
+FOR: 'for';
+//NAVIC
+CHAR: 'char';
 
 BOOL_LITERAL: 'true' | 'false';
 STRING_LITERAL: '"'~["\r\n]*'"'; // Text mezi uvozovkami, bez uvozovek
@@ -37,7 +40,7 @@ ID: [a-zA-Z][a-zA-Z0-9]*;
    ============================================================*/
 program : statement* EOF ;
 
-type_spec: TYPE_FLOAT | TYPE_INT | TYPE_STRING | TYPE_BOOL;
+type_spec: TYPE_FLOAT | TYPE_INT | TYPE_STRING | TYPE_BOOL | FILE | CHAR;
 
 statement
     : ';'                                      # EmptyStatement
@@ -48,6 +51,11 @@ statement
     | expression ';'                           # ExpressionStatement
     | IF '(' expression ')' statement (ELSE statement)?  # IfStatement
     | WHILE '(' expression ')' statement        # WhileStatement
+    //NAVIC
+    | FOR '(' expression ';' expression ';' expression ')' statement # forStatement
+    | 'fopen' ID ',' expression ';' # fopenStatement
+    | 'fappend' ID (',' expression)* ';' # fappendStatement
+
     ;               
 
 expression
@@ -57,8 +65,11 @@ expression
     | BOOL_LITERAL                             # BoolExpression
     | STRING_LITERAL                           # StringExpression
     | ID                                       # IdExpression
+    | expression '[' expression ']' # charAtExpression
     // 2. UNARNI MINUS A LOGICKE NOT (napr. -5 nebo -a)   
     | ('-'|'!') expression                          # UnaryExpression
+    // 1. MOCNINA NAVIC
+    | expression op='**' expression # PowerExpression
     // 3. NASOBENI, DELENI, MODULO (napr. a * b, a / b, a % b)
     | expression op=('*' | '/' | '%') expression  # MulDivModExpression
     // 4. SCITANI A ODCTITANI (napr. a + b, a - b)
@@ -71,6 +82,8 @@ expression
     | expression op='&&' expression              # AndExpression
     // 8. LOGICKE OR (napr. a || b)
     | expression op='||' expression              # OrExpression
+    //NAVIC TERNARNI OPERATOR (napr. a ? b : c) - pokud je a pravda, vrati b, jinak vrati c
+    | expression '?' expression ':' expression # TernaryExpression
     // 9. PŘIŘAZENÍ (a = 5). Úplně nejnižší priorita.
     // <assoc=right> znamená, že se to počítá zprava doleva (nejdřív se spočítá pravá strana, pak se uloží doleva)
     | <assoc=right> expression '=' expression  # AssignmentExpression

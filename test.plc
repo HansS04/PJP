@@ -1,24 +1,52 @@
-if (3<4) write "condition was true";
-else write "condition was false";
+// 1. DEKLARACE VŠECH TYPŮ
+int i, j;
+float f;
+string s;
+char c;
+bool b;
+file out;
 
-if (true) {
-	write "inside";
-	write "second";
-	write "if";
+// 2. ZÁKLADNÍ MATEMATIKA A PŘETYPOVÁNÍ (itof)
+i = 10;
+f = 2.5;
+f = f + i; 
+write "Vysledek f = f + i (ma byt 12.5): ", f;
+
+// 3. PRÁCE S TEXTEM A ZNAKY (charAt)
+s = "Ahoj Svete";
+c = s[5]; 
+write "Pate pismeno v textu 'Ahoj Svete' je: ", c;
+
+// 4. PODMÍNKY (if-else) A LOGIKA
+b = !false;
+if (i > 5 && b == true) {
+    write "Podminka plati, 'i' je vetsi nez 5 a 'b' je true.";
+} else {
+    write "Chyba: Tohle by se vubec nemelo vypsat.";
 }
 
-int a,b;
-
-while(a<10) {
- write "a=",a;
- a=a+1;
+// 5. CYKLUS WHILE
+write "Odpocet pomoci WHILE:";
+j = 3;
+while (j > 0) {
+    write j;
+    j = j - 1;
 }
 
-a=0;
-
-read b;
-
-while(a<b) {
- write "a=",a,", b=",b;
- a=a+1;
+// 6. CYKLUS FOR
+write "Pocitani pomoci FOR:";
+for (j = 0; j < 3; j = j + 1) {
+    write "Krok FOR cyklu: ", j;
 }
+
+float operator;
+int iterator;
+iterator = 10;
+
+// Pokud i > 5, vrať int 100, jinak vrať float 3.5
+operator = (iterator > 5) ? 100 : 3.5;
+
+// 7. PRÁCE SE SOUBORY
+fopen out, "vysledek_testu.txt";
+fappend out, "Tohle je automaticky vygenerovany test.", " Hodnota f je: ", f;
+write "Zapis do souboru 'vysledek_testu.txt' byl uspesne dokoncen!";

@@ -59,6 +59,31 @@ class PLCVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by PLCParser#forStatement.
+    def visitForStatement(self, ctx:PLCParser.ForStatementContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by PLCParser#fopenStatement.
+    def visitFopenStatement(self, ctx:PLCParser.FopenStatementContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by PLCParser#fappendStatement.
+    def visitFappendStatement(self, ctx:PLCParser.FappendStatementContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by PLCParser#TernaryExpression.
+    def visitTernaryExpression(self, ctx:PLCParser.TernaryExpressionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by PLCParser#PowerExpression.
+    def visitPowerExpression(self, ctx:PLCParser.PowerExpressionContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by PLCParser#IntExpression.
     def visitIntExpression(self, ctx:PLCParser.IntExpressionContext):
         return self.visitChildren(ctx)
@@ -111,6 +136,11 @@ class PLCVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by PLCParser#AssignmentExpression.
     def visitAssignmentExpression(self, ctx:PLCParser.AssignmentExpressionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by PLCParser#charAtExpression.
+    def visitCharAtExpression(self, ctx:PLCParser.CharAtExpressionContext):
         return self.visitChildren(ctx)
 
 
